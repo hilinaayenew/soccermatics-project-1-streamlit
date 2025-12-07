@@ -43,7 +43,7 @@ fig = px.scatter(
     x='prog_passes_90',
     y='prog_carries_90',
     color=mid_prog_df['player'].apply(
-        lambda x: 'red' if x == selected_player else 'red' if x == selected_player else 'blue' if x == "Christian Dannemann Eriksen" else 'gray'
+        lambda x: 'green' if x == selected_player  else 'red' if x == "Christian Dannemann Eriksen" else 'gray'
     ),
     hover_name='player',
     hover_data={
@@ -54,7 +54,7 @@ fig = px.scatter(
         'prog_passes_final_third_90': True
     },
     opacity=0.7,
-    size_max=15
+    size_max=20
 )
 fig.update_layout(title='Progressive Passes vs Carries per 90', xaxis_title='Prog Passes /90', yaxis_title='Prog Carries /90')
 st.plotly_chart(fig, use_container_width=True)
@@ -69,7 +69,7 @@ fig2 = px.scatter(
     x='prog_passes_90',
     y='prog_passes_final_third_90',
     color=mid_prog_df['player'].apply(
-        lambda x: 'red' if x == selected_player else 'blue' if x == "Christian Dannemann Eriksen" else 'gray'
+        lambda x: 'green' if x == selected_player else 'red' if x == "Christian Dannemann Eriksen" else 'gray'
     ),
     hover_name='player',
     hover_data={
@@ -80,7 +80,7 @@ fig2 = px.scatter(
         'prog_passes_final_third_90': True
     },
     opacity=0.7,
-    size_max=15
+    size_max=20
 )
 fig2.update_layout(title='Progressive Passes vs Final Third Entries', xaxis_title='Prog Passes /90', yaxis_title='Final Third /90')
 st.plotly_chart(fig2, use_container_width=True)
@@ -130,10 +130,10 @@ rank_table = rank_table[[
 # Highlight Eriksen (blue if not selected, red if selected) and selected player
 def highlight_players(row):
     if row["player"] == "Christian Dannemann Eriksen":
-        color = 'lightcoral' if selected_player == "Christian Dannemann Eriksen" else 'lightblue'
+        color = 'green' if selected_player == "Christian Dannemann Eriksen" else 'red'
         return [f'background-color: {color}' for _ in row]
     elif row["player"] == selected_player:
-        return ['background-color: lightcoral' for _ in row]
+        return ['background-color: green' for _ in row]
     else:
         return ['' for _ in row]
 
