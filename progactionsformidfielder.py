@@ -11,7 +11,7 @@ mid_prog_df.columns = mid_prog_df.columns.str.strip()
 
 # -----------------------
 st.title("Euro 2024 Midfielders: Progressive Actions Dashboard")
-st.markdown("visualization of progressive passes, carries, and final third entries.")
+st.markdown("Visualization of progressive passes, carries, and final third entries.")
 st.markdown("This data applies to players with above 200 total minutes played.")
 
 # -----------------------
@@ -34,6 +34,19 @@ mid_prog_df['hover_text'] = (
 )
 
 # -----------------------
+# Function to assign colors for legend
+# -----------------------
+def assign_color(player):
+    if player == "Christian Dannemann Eriksen":
+        return 'Eriksen (red)'
+    elif player == selected_player:
+        return f'Selected: {selected_player} (green)'
+    else:
+        return 'Other midfielders (gray)'
+
+mid_prog_df['color_label'] = mid_prog_df['player'].apply(assign_color)
+
+# -----------------------
 # Scatter plot: Passes vs Carries
 # -----------------------
 st.subheader("Progressive Passes vs Carries per 90")
@@ -42,21 +55,28 @@ fig = px.scatter(
     mid_prog_df,
     x='prog_passes_90',
     y='prog_carries_90',
-    color=mid_prog_df['player'].apply(
-        lambda x: 'green' if x == selected_player  else 'red' if x == "Christian Dannemann Eriksen" else 'gray'
-    ),
+    color='color_label',
     hover_name='player',
     hover_data={
         'total_games': True,
         'mid_games': True,
         'prog_passes_90': True,
         'prog_carries_90': True,
-        'prog_passes_final_third_90': True
+        'prog_passes_final_third_90': True,
+        'color_label': False  # Hide color label in hover
     },
-    opacity=0.7,
-    size_max=20
+    size_max=25,  # Bigger points
+    opacity=0.8
 )
-fig.update_layout(title='Progressive Passes vs Carries per 90', xaxis_title='Prog Passes /90', yaxis_title='Prog Carries /90')
+
+fig.update_traces(marker=dict(size=15))  # Increase marker size
+fig.update_layout(
+    title='Progressive Passes vs Carries per 90',
+    xaxis_title='Prog Passes /90',
+    yaxis_title='Prog Carries /90',
+    legend_title_text='Player Type'
+)
+
 st.plotly_chart(fig, use_container_width=True)
 
 # -----------------------
@@ -68,21 +88,28 @@ fig2 = px.scatter(
     mid_prog_df,
     x='prog_passes_90',
     y='prog_passes_final_third_90',
-    color=mid_prog_df['player'].apply(
-        lambda x: 'green' if x == selected_player else 'red' if x == "Christian Dannemann Eriksen" else 'gray'
-    ),
+    color='color_label',
     hover_name='player',
     hover_data={
         'total_games': True,
         'mid_games': True,
         'prog_passes_90': True,
         'prog_carries_90': True,
-        'prog_passes_final_third_90': True
+        'prog_passes_final_third_90': True,
+        'color_label': False  # Hide color label in hover
     },
-    opacity=0.7,
-    size_max=20
+    size_max=25,
+    opacity=0.8
 )
-fig2.update_layout(title='Progressive Passes vs Final Third Entries', xaxis_title='Prog Passes /90', yaxis_title='Final Third /90')
+
+fig2.update_traces(marker=dict(size=15))  # Bigger points
+fig2.update_layout(
+    title='Progressive Passes vs Final Third Entries',
+    xaxis_title='Prog Passes /90',
+    yaxis_title='Final Third /90',
+    legend_title_text='Player Type'
+)
+
 st.plotly_chart(fig2, use_container_width=True)
 
 # -----------------------
@@ -127,11 +154,10 @@ rank_table = rank_table[[
     "prog_passes_90", "prog_carries_90", "prog_passes_final_third_90"
 ]]
 
-# Highlight Eriksen (blue if not selected, red if selected) and selected player
+# Highlight Eriksen (red) and selected player (green)
 def highlight_players(row):
     if row["player"] == "Christian Dannemann Eriksen":
-        color = 'green' if selected_player == "Christian Dannemann Eriksen" else 'red'
-        return [f'background-color: {color}' for _ in row]
+        return ['background-color: red' for _ in row]
     elif row["player"] == selected_player:
         return ['background-color: green' for _ in row]
     else:
