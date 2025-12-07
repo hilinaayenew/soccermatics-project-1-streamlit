@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 from scipy.stats import percentileofscore
+import plotly.express as px
 
 # -----------------------
 # Load CSV
@@ -10,10 +10,9 @@ mid_prog_df = pd.read_csv("euro24_midfielders_full.csv")
 mid_prog_df.columns = mid_prog_df.columns.str.strip()
 
 # -----------------------
-# App Title
-# -----------------------
 st.title("Euro 2024 Midfielders: Progressive Actions Dashboard")
-st.markdown("Interactive visualization of progressive passes, carries, and final third entries.")
+st.markdown("visualization of progressive passes, carries, and final third entries.")
+st.markdown("This data applies to players with above 200 total minutes played.")
 
 # -----------------------
 # Player selector
@@ -23,76 +22,68 @@ selected_player = st.selectbox("Select a player", players)
 player_data = mid_prog_df[mid_prog_df["player"] == selected_player]
 
 # -----------------------
+# Add hover text for Plotly
+# -----------------------
+mid_prog_df['hover_text'] = (
+    "Player: " + mid_prog_df['player'] +
+    "<br>Total games: " + mid_prog_df['total_games'].astype(str) +
+    "<br>Mid games: " + mid_prog_df['mid_games'].astype(str) +
+    "<br>Prog Passes /90: " + mid_prog_df['prog_passes_90'].round(2).astype(str) +
+    "<br>Prog Carries /90: " + mid_prog_df['prog_carries_90'].round(2).astype(str) +
+    "<br>Final Third /90: " + mid_prog_df['prog_passes_final_third_90'].round(2).astype(str)
+)
+
+# -----------------------
 # Scatter plot: Passes vs Carries
 # -----------------------
 st.subheader("Progressive Passes vs Carries per 90")
 
-fig, ax = plt.subplots(figsize=(8,6))
-
-# Default midfielders in gray (excluding selected player and Eriksen)
-mask_default = (mid_prog_df["player"] != selected_player) & (mid_prog_df["player"] != "Christian Dannemann Eriksen")
-ax.scatter(
-    mid_prog_df.loc[mask_default, "prog_passes_90"],
-    mid_prog_df.loc[mask_default, "prog_carries_90"],
-    alpha=0.5, color='gray', label="Midfielders"
+fig = px.scatter(
+    mid_prog_df,
+    x='prog_passes_90',
+    y='prog_carries_90',
+    color=mid_prog_df['player'].apply(
+        lambda x: 'red' if x == selected_player else 'red' if x == selected_player else 'blue' if x == "Christian Dannemann Eriksen" else 'gray'
+    ),
+    hover_name='player',
+    hover_data={
+        'total_games': True,
+        'mid_games': True,
+        'prog_passes_90': True,
+        'prog_carries_90': True,
+        'prog_passes_final_third_90': True
+    },
+    opacity=0.7,
+    size_max=15
 )
-
-# Eriksen color logic: red if selected, blue otherwise
-mask_eriksen = mid_prog_df["player"] == "Christian Dannemann Eriksen"
-eriksen_color = 'red' if selected_player == "Christian Dannemann Eriksen" else 'blue'
-ax.scatter(
-    mid_prog_df.loc[mask_eriksen, "prog_passes_90"],
-    mid_prog_df.loc[mask_eriksen, "prog_carries_90"],
-    color=eriksen_color, s=120, label="Eriksen"
-)
-
-# Other selected player (not Eriksen) in red
-if selected_player != "Christian Dannemann Eriksen":
-    ax.scatter(
-        player_data["prog_passes_90"],
-        player_data["prog_carries_90"],
-        color='red', s=120, label=selected_player
-    )
-
-ax.set_xlabel("Progressive Passes per 90")
-ax.set_ylabel("Progressive Carries per 90")
-ax.set_title("Progressive Passes vs Carries per 90")
-ax.grid(alpha=0.3)
-ax.legend()
-st.pyplot(fig)
+fig.update_layout(title='Progressive Passes vs Carries per 90', xaxis_title='Prog Passes /90', yaxis_title='Prog Carries /90')
+st.plotly_chart(fig, use_container_width=True)
 
 # -----------------------
 # Scatter plot: Passes vs Final Third Entries
 # -----------------------
 st.subheader("Progressive Passes vs Final Third Entries per 90")
 
-fig2, ax2 = plt.subplots(figsize=(8,6))
-
-ax2.scatter(
-    mid_prog_df.loc[mask_default, "prog_passes_90"],
-    mid_prog_df.loc[mask_default, "prog_passes_final_third_90"],
-    alpha=0.5, color='gray', label="Midfielders"
+fig2 = px.scatter(
+    mid_prog_df,
+    x='prog_passes_90',
+    y='prog_passes_final_third_90',
+    color=mid_prog_df['player'].apply(
+        lambda x: 'red' if x == selected_player else 'blue' if x == "Christian Dannemann Eriksen" else 'gray'
+    ),
+    hover_name='player',
+    hover_data={
+        'total_games': True,
+        'mid_games': True,
+        'prog_passes_90': True,
+        'prog_carries_90': True,
+        'prog_passes_final_third_90': True
+    },
+    opacity=0.7,
+    size_max=15
 )
-
-ax2.scatter(
-    mid_prog_df.loc[mask_eriksen, "prog_passes_90"],
-    mid_prog_df.loc[mask_eriksen, "prog_passes_final_third_90"],
-    color=eriksen_color, s=120, label="Eriksen"
-)
-
-if selected_player != "Christian Dannemann Eriksen":
-    ax2.scatter(
-        player_data["prog_passes_90"],
-        player_data["prog_passes_final_third_90"],
-        color='red', s=120, label=selected_player
-    )
-
-ax2.set_xlabel("Progressive Passes per 90")
-ax2.set_ylabel("Progressive Passes Final Third / 90")
-ax2.set_title("Progressive Passes vs Final Third Entries")
-ax2.grid(alpha=0.3)
-ax2.legend()
-st.pyplot(fig2)
+fig2.update_layout(title='Progressive Passes vs Final Third Entries', xaxis_title='Prog Passes /90', yaxis_title='Final Third /90')
+st.plotly_chart(fig2, use_container_width=True)
 
 # -----------------------
 # Percentile ranks
